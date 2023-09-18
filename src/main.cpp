@@ -18,6 +18,7 @@
 #include "Texture.hpp"
 #include "Camera.hpp"
 #include "Controls.hpp"
+#include "CoordinateAxis.hpp"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -28,14 +29,14 @@
 const unsigned int windowWidth = 1920;
 const unsigned int windowHeight = 1080;
 
-float CalculateWaveHeight(float x, float z, float currentTime)
+float CalculateWaveHeight(float xamp, float zamp, float x, float z, float currentTime)
 {
 	float y = 0.0f;
 
 	// Calculate the wave height at the given position
 
-		y = sinf(0.5 * (x + z + 10.0 * currentTime)) * 3.0;
-	
+		y = sinf(0.5 * (xamp * x + zamp * z + 10.0 * currentTime)) * 3.0;
+
 	return y;
 }
 
@@ -83,13 +84,6 @@ int main(void)
     }
 
 
-
-
-
-
-
-
-
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -122,32 +116,35 @@ int main(void)
     {
 
         float positions[] = {
-            -50.0f,  -20.0f, -50.0f,
-             50.0f,  -20.0f, -50.0f,
-             50.0f,  -20.0f,  50.0f,
-            -50.0f,  -20.0f,  50.0f,
+            -200.0f,  -20.0f, -200.0f,
+             200.0f,  -20.0f, -200.0f,
+             200.0f,  -20.0f,  200.0f,
+            -200.0f,  -20.0f,  200.0f,
         };
 
 
         unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
+            0, 1, 2,        //Triangle 1
+            2, 3, 0 	    //Triangle 2
         };
-
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         
         VertexArray va; //create a vertex array
         VertexBuffer vb(positions, 4 * 3 * sizeof(float)); //create a vertex buffer
 
+        IndexBuffer ib2(indices2, numIndices);
         VertexBufferLayout layout;  //create a vertex buffer layout
         layout.Push<float>(3);  //push a float with 2 elements to the layout
         va.AddBuffer(vb, layout);   //add the vertex buffer and the layout to the vertex array
         IndexBuffer ib(indices, 6); //create an index buffer
-        
-        Shader shader("res/shaders/Basic.shader"); //create a shader
 
+        Shader shader("res/shaders/Basic.shader"); //create a shader
+        Shader shader2("res/shaders/Sinusoid.shader"); //create a shader
         
+        
+        //COORDINATE AXIS
+ 
         //GLCall(glUseProgram(1));
         //std::cout << "LOL" << std::endl;
 
@@ -172,25 +169,30 @@ int main(void)
         glm::vec3 translationB(0, -20.0f, 0.0f);
         glm::vec3 rotationB(0, 1, 0);
 
-        Camera camera(glm::radians(90.0f), (float)windowWidth / (float)windowHeight, 0.1f, 900.0f, window);
+        Camera camera(glm::radians(90.0f), (float)windowWidth / (float)windowHeight, 0.1f, 5000.0f, window);
         camera.SetPosition(glm::vec3(0, 0, 3));
 
         Controls controls(window);
         camera.BindControls(&controls);
+
+        Axis axis(5000.0f);
+        
         float fov = 4000.0f;
-        float speed = 0.1f;
+        float speed = 0.3f;
         float sensitivity = 0.1f;
+        float waveLength = 0.1f;
+        float xamp = 1.0f;
+        float zamp = 1.0f;
+        glm::vec3 lightPos(0.0f, 50.0f, 0.0f);
+        glm::vec3 lightColor(1.0f, 0.8549f, 0.7255f);
         /* Loop until the user closes the window */
         glViewport(0, 0, windowWidth, windowHeight);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
+        GLCall(glClearColor(0.529f, 0.808f, 0.922f, 1.0f));
         while (!glfwWindowShouldClose(window))
         {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             float time = glfwGetTime(); // Get the current time in seconds
-
-
-
             // Define the properties of the rainbow effect
             float frequency = 1.0f; // Adjust the frequency to control the speed of the rainbow effect
             float amplitude = 0.5f; // Adjust the amplitude to control the intensity of the effect
@@ -211,12 +213,21 @@ int main(void)
             renderer.Clear();
 
             ImGui_ImplGlfwGL3_NewFrame();
-
+            
+            {   //Draw the coordinate axis
+                shader.Bind();
+                glm::mat4 model = glm::mat4(1.0f); //create a model matrix
+                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
+                glLineWidth(3.0f);
+                axis.Draw();
+            }
             {   //Draw object A
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA); //create a model matrix
                 glm::mat4 mvp = projectionMatrix * viewMatrix * model;
                 shader.Bind();
-                shader.SetUniform4f("u_Color", r, g, b, 1.0f); //set the uniform
+                shader.SetUniform4f("u_Color", 0.482f, 0.62f, 0.451f, 1.0f); //set the uniform
                 shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
                 renderer.Draw(va, ib, shader);
             }
@@ -225,39 +236,45 @@ int main(void)
                     for (int j = 0; j < numCols; j++) {
                         float x = j * cellWidth;
                         float z = i * cellDepth;
-                        float y = CalculateWaveHeight(x, z, time); // Calculate wave height for this vertex
+                        float y = CalculateWaveHeight(xamp, zamp, x, z, time); // Calculate wave height for this vertex
                         vertices[(i * numCols + j) * 3 + 0] = x;
                         vertices[(i * numCols + j) * 3 + 1] = y;
                         vertices[(i * numCols + j) * 3 + 2] = z;
                     }
                 }
                 VertexArray va2 = VertexArray();
-                IndexBuffer ib2(indices2, numIndices);
                 VertexBuffer vb2(vertices, numRows * numCols * 3 * sizeof(float));
                 VertexBufferLayout layout;
                 layout.Push<float>(3);
                 va2.AddBuffer(vb2, layout);
-                shader.Bind();
+                shader2.Bind();
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); //create a model matrix
 				glm::mat4 mvp = projectionMatrix * viewMatrix * model;
-				shader.SetUniform4f("u_Color", r, g, b, 1.0f); //set the uniform
-				shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
-				renderer.Draw(va2, ib2, shader);
-
+                shader2.SetUniform3f("u_LightPos", lightPos.x, lightPos.y, lightPos.z); //set the uniform
+                shader2.SetUniform3f("u_LightColor", lightColor.x, lightColor.y, lightColor.z); //set the uniform
+                shader2.SetUniform3f("u_ViewPos", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z); //set the uniform
+                shader2.SetUniform1f("u_Wavelength", waveLength); //set the uniform 
+				shader2.SetUniform1f("u_Time", time); //set the uniform
+				shader2.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                renderer.Draw(va2, ib2, shader2);
             }
-
-
-
-
-
-
             {
+                ImGui::Begin("Application Controls");
+                ImGui::SliderFloat("FOV", &fov, 0.0f, 10000.0f);
+                ImGui::SliderFloat("Flying Speed", &speed, 0.0f, 5.0f);
+                ImGui::SliderFloat("Mouse Sensitivity", &sensitivity, 0.0f, 5.0f);
+                ImGui::Text("Camera Position: %.3f, %.3f, %.3f", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::End();
+
+
                 ImGui::SliderFloat3("Translation A", &translationA.x, -960.f, 960.0f);
                 ImGui::SliderFloat3("Translation B", &translationB.x, -960.f, 960.0f);
-                ImGui::SliderFloat("FOV", &fov, 0.0f, 10000.0f);
-                ImGui::SliderFloat("Flying Speed", &speed, 0.0f, 10.0f);
-                ImGui::SliderFloat("Mouse Sensitivity", &sensitivity, 0.0f, 10.0f);  
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::SliderFloat("Wave Length", &waveLength, 0.001f, 100.0f);
+                ImGui::SliderFloat("X Amplitude", &xamp, 0.0f, 100.0f);
+                ImGui::SliderFloat("Z Amplitude", &zamp, 0.0f, 100.0f);
+                ImGui::SliderFloat3("Light Position", &lightPos.x, -960.f, 960.0f);
+                ImGui::SliderFloat3("Light Color", &lightColor.x, 0.0f, 1.0f);
             }
             camera.SetFOV(glm::radians(fov));
             camera.setSpeed(speed);

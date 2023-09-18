@@ -1,4 +1,6 @@
 #include "Camera.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw_gl3.h""
 
 Camera::Camera(float fov, float aspectRatio, float near, float far, GLFWwindow* window)
     : m_FOV(fov), m_AspectRatio(aspectRatio), m_Near(near), m_Far(far) {
@@ -84,41 +86,46 @@ void Camera::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
 	if (camera != NULL)
 	{
-		static float lastX = 0.0f;
-		static float lastY = 0.0f;
-		static bool firstMouse = true;
-
-		if (firstMouse)
+		ImGuiIO& io = ImGui::GetIO();
+		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 		{
+			static float lastX = 0.0f;
+			static float lastY = 0.0f;
+			static bool firstMouse = true;
+
+			if (firstMouse)
+			{
+				lastX = xpos;
+				lastY = ypos;
+				firstMouse = false;
+			}
+
+			float xOffset = xpos - lastX;
+			float yOffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
 			lastX = xpos;
 			lastY = ypos;
-			firstMouse = false;
+
+			xOffset *= camera->m_MouseSensitivity;
+			yOffset *= camera->m_MouseSensitivity;
+
+			camera->m_Yaw += xOffset;
+			camera->m_Pitch += yOffset;
+
+			// Make sure that when pitch is out of bounds, screen doesn't get flipped
+			if (camera->m_Pitch > 89.0f)
+				camera->m_Pitch = 89.0f;
+			if (camera->m_Pitch < -89.0f)
+				camera->m_Pitch = -89.0f;
+
+			// Update Front, Right and Up Vectors using the updated Euler angles
+			glm::vec3 front;
+			front.x = cos(glm::radians(camera->m_Yaw)) * cos(glm::radians(camera->m_Pitch));
+			front.y = sin(glm::radians(camera->m_Pitch));
+			front.z = sin(glm::radians(camera->m_Yaw)) * cos(glm::radians(camera->m_Pitch));
+			camera->m_Front = glm::normalize(front);
+			camera->RecalculateViewMatrix();
 		}
-
-		float xOffset = xpos - lastX;
-		float yOffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-		lastX = xpos;
-		lastY = ypos;
-
-		xOffset *= camera->m_MouseSensitivity;
-		yOffset *= camera->m_MouseSensitivity;
-
-		camera->m_Yaw += xOffset;
-		camera->m_Pitch += yOffset;
-
-		// Make sure that when pitch is out of bounds, screen doesn't get flipped
-		if (camera->m_Pitch > 89.0f)
-			camera->m_Pitch = 89.0f;
-		if (camera->m_Pitch < -89.0f)
-			camera->m_Pitch = -89.0f;
-
-		// Update Front, Right and Up Vectors using the updated Euler angles
-		glm::vec3 front;
-		front.x = cos(glm::radians(camera->m_Yaw)) * cos(glm::radians(camera->m_Pitch));
-		front.y = sin(glm::radians(camera->m_Pitch));
-		front.z = sin(glm::radians(camera->m_Yaw)) * cos(glm::radians(camera->m_Pitch));
-		camera->m_Front = glm::normalize(front);
-		camera->RecalculateViewMatrix();
+		io.WantCaptureMouse = glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED;
 	}
 }

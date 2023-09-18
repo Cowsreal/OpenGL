@@ -8,12 +8,13 @@ class Camera {
 public:
     Camera(float fov, float aspectRatio, float near, float far, GLFWwindow* window);
 
-    void SetPosition(const glm::vec3& position);
     void BindControls(Controls* controls);
     const glm::mat4& GetViewMatrix() const;
     const glm::mat4& GetProjectionMatrix() const;
     void ProcessControls();
-    
+    glm::vec3 getPosition() { return m_Position; }
+
+    void SetPosition(const glm::vec3& position);
     void SetFOV(float fov);
     void setSpeed(float speed) { m_Speed = speed; }
     void setSensitivity(float sensitivity) { m_MouseSensitivity = sensitivity; }

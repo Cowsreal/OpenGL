@@ -60,6 +60,9 @@
     <ClCompile Include="src\Controls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CoordinateAxis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\lib\glfw3.txt" />
@@ -475,6 +478,7 @@
     <None Include="src\vendor\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="res\shaders\Sinusoid.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
@@ -1395,6 +1399,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Controls.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CoordinateAxis.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
