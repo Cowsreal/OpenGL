@@ -3,6 +3,7 @@
 class VertexBuffer
 {
 public:
+	VertexBuffer() {}; //Default constructor
 	VertexBuffer(const void* data, unsigned int size); //constructor
 	~VertexBuffer(); //destructor
 	

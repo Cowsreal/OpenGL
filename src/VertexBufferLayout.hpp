@@ -25,8 +25,6 @@ public:
 	unsigned int count;
 	unsigned int type;
 	unsigned char normalized; 
-
-	
 };
 
 class VertexBufferLayout
@@ -74,5 +72,4 @@ public:
 private:
 	std::vector<VertexBufferElement> m_Elements;
 	unsigned int m_Stride;
-
 };

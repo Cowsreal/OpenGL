@@ -60,7 +60,10 @@
     <ClCompile Include="src\Controls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CoordinateAxis.cpp">
+    <ClCompile Include="src\render_geom\CoordinateAxis\CoordinateAxis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render_geom\Sphere\Sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1401,7 +1404,10 @@
     <ClInclude Include="src\Controls.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CoordinateAxis.hpp">
+    <ClInclude Include="src\render_geom\CoordinateAxis\CoordinateAxis.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\render_geom\Sphere\Sphere.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

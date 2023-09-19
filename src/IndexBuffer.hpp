@@ -3,6 +3,7 @@
 class IndexBuffer
 {
 public:
+	IndexBuffer(){}; //default constructor
 	IndexBuffer(const unsigned int* data, unsigned int count); //constructor
 	~IndexBuffer(); //destructor
 

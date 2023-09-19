@@ -1,3 +1,13 @@
+//TODO: 
+//      Create sphere renderer
+//      Create PDF definition for hydrogen atom wave function
+//      Create a Monte Carlo based position sampler
+//      Create a sphere at each sampled position
+//      Render the spheres
+//      Create a color mapper for regions of constant probability
+
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -18,7 +28,8 @@
 #include "Texture.hpp"
 #include "Camera.hpp"
 #include "Controls.hpp"
-#include "CoordinateAxis.hpp"
+#include "render_geom/CoordinateAxis/CoordinateAxis.hpp"
+#include "render_geom/Sphere/Sphere.hpp"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -39,7 +50,6 @@ float CalculateWaveHeight(float xamp, float zamp, float x, float z, float curren
 
 	return y;
 }
-
 
 int main(void)
 {
@@ -116,10 +126,10 @@ int main(void)
     {
 
         float positions[] = {
-            -200.0f,  -20.0f, -200.0f,
-             200.0f,  -20.0f, -200.0f,
-             200.0f,  -20.0f,  200.0f,
-            -200.0f,  -20.0f,  200.0f,
+            -2000.0f,  -20.0f, -2000.0f,
+             2000.0f,  -20.0f, -2000.0f,
+             2000.0f,  -20.0f,  2000.0f,
+            -2000.0f,  -20.0f,  2000.0f,
         };
 
 
@@ -153,7 +163,9 @@ int main(void)
         //Texture texture("res/textures/img.png"); //create a texture)
         //texture.Bind();
         //shader.SetUniform1i("u_Texture", 0); //set the uniform
+        //Sphere sphere = Sphere(100.0f);
 
+        std::cout << "Constructed sphere" << std::endl;
         va.Unbind();
         shader.Unbind();
         vb.Unbind();
@@ -161,16 +173,16 @@ int main(void)
 
         Renderer renderer; //create a renderer
 
-        ImGui::CreateContext();    
+        ImGui::CreateContext();
         ImGui_ImplGlfwGL3_Init(window, true);
         ImGui::StyleColorsDark();
 
         glm::vec3 translationA(0, -50.0f, 0);
-        glm::vec3 translationB(0, -20.0f, 0.0f);
+        glm::vec3 translationB(0, 5.0f, 0.0f);
         glm::vec3 rotationB(0, 1, 0);
 
         Camera camera(glm::radians(90.0f), (float)windowWidth / (float)windowHeight, 0.1f, 5000.0f, window);
-        camera.SetPosition(glm::vec3(0, 0, 3));
+        camera.SetPosition(glm::vec3(0, 50.0f, 0.0));
 
         Controls controls(window);
         camera.BindControls(&controls);
@@ -190,6 +202,7 @@ int main(void)
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         GLCall(glClearColor(0.529f, 0.808f, 0.922f, 1.0f));
+
         while (!glfwWindowShouldClose(window))
         {
             float time = glfwGetTime(); // Get the current time in seconds
@@ -198,8 +211,8 @@ int main(void)
             float amplitude = 0.5f; // Adjust the amplitude to control the intensity of the effect
 
             // Calculate the RGB values based on time
-            float r = amplitude * sin(frequency * time + 0.0f) + 0.5f;   // Red channel
-            float g = amplitude * sin(frequency * time + 2.0f) + 0.5f; // Green channel
+            float r = amplitude * sin(frequency * time + 0.0f) + 0.5f;  // Red channel
+            float g = amplitude * sin(frequency * time + 2.0f) + 0.5f;  // Green channel
             float b = amplitude * sin(frequency * time + 4.0f) + 0.5f;  // Blue channel
 
             // Ensure that RGB values are in the range [0, 1]
@@ -223,10 +236,26 @@ int main(void)
                 glLineWidth(3.0f);
                 axis.Draw();
             }
+            {   //Draw the coordinate axis
+                shader.Bind();
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)); //create a model matrix
+                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
+                glLineWidth(3.0f);
+                axis.Draw();
+            }
+            /*
+            {
+                glm::mat4 model = glm::mat4(1.0f); //create a model matrix
+                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
+                sphere.Draw();
+            }*/
             {   //Draw object A
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA); //create a model matrix
                 glm::mat4 mvp = projectionMatrix * viewMatrix * model;
-                shader.Bind();
                 shader.SetUniform4f("u_Color", 0.482f, 0.62f, 0.451f, 1.0f); //set the uniform
                 shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
                 renderer.Draw(va, ib, shader);

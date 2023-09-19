@@ -4,7 +4,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "Controls.hpp"
 
-class Camera {
+class Camera 
+{
 public:
     Camera(float fov, float aspectRatio, float near, float far, GLFWwindow* window);
 

@@ -1,13 +1,12 @@
 #pragma once
 #include "glm/glm.hpp"
 
-#include "Renderer.hpp"
-#include "VertexBuffer.hpp"
-#include "VertexArray.hpp"
-#include "VertexBufferLayout.hpp"
+#include "../../Renderer.hpp"
+#include "../../VertexBuffer.hpp"
+#include "../../VertexArray.hpp"
+#include "../../VertexBufferLayout.hpp"
 
 #include <vector>
-
 
 class Axis 
 {

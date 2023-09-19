@@ -12,7 +12,7 @@ void main()
 {
     float x = position.x;
     float z = position.z;
-    float y = sin(0.5 * (x + z + 10.0 * u_Time)) * 3.0;
+    float y = sin(0.5 * (x + z + 10.0 * u_Time)) * 1.0;
 
     vec4 displacedPosition = position;
     displacedPosition.y += y;
@@ -36,9 +36,8 @@ uniform float u_Wavelength;
 
 float RainbowComponent(float coord)
 {
-    float wavelength = 0.2;
     float phaseShift = 0.0;
-    float amplitude = 0.5;
+    float amplitude = 1.0;
 
     return 0.5 + amplitude * sin(2.0 * PI * (coord + phaseShift) / u_Wavelength);
 }
