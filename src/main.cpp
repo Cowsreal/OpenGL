@@ -53,7 +53,7 @@ float CalculateWaveHeight(float xamp, float zamp, float x, float z, float curren
 
 int main(void)
 {
-
+    bool blinn = false;
     const int numRows = 100;
     const int numCols = 100;
     const float planeSizeX = 100.0f;
@@ -151,6 +151,7 @@ int main(void)
 
         Shader shader("res/shaders/Basic.shader"); //create a shader
         Shader shader2("res/shaders/Sinusoid.shader"); //create a shader
+        Shader shader3("res/shaders/Sinusoid_No_Blinn.shader"); //create a shader
         
         
         //COORDINATE AXIS
@@ -192,7 +193,10 @@ int main(void)
         float fov = 4000.0f;
         float speed = 0.3f;
         float sensitivity = 0.1f;
-        float waveLength = 0.1f;
+        float waveLength = 2.0f;
+        float phaseShift = 0.5f;
+        float amplitude = 0.5f;
+        float norm = 0.1f;
         float xamp = 1.0f;
         float zamp = 1.0f;
         glm::vec3 lightPos(0.0f, 50.0f, 0.0f);
@@ -207,18 +211,6 @@ int main(void)
         {
             float time = glfwGetTime(); // Get the current time in seconds
             // Define the properties of the rainbow effect
-            float frequency = 1.0f; // Adjust the frequency to control the speed of the rainbow effect
-            float amplitude = 0.5f; // Adjust the amplitude to control the intensity of the effect
-
-            // Calculate the RGB values based on time
-            float r = amplitude * sin(frequency * time + 0.0f) + 0.5f;  // Red channel
-            float g = amplitude * sin(frequency * time + 2.0f) + 0.5f;  // Green channel
-            float b = amplitude * sin(frequency * time + 4.0f) + 0.5f;  // Blue channel
-
-            // Ensure that RGB values are in the range [0, 1]
-            r = std::max(0.0f, std::min(1.0f, r));
-            g = std::max(0.0f, std::min(1.0f, g));
-            b = std::max(0.0f, std::min(1.0f, b));
 
             glm::mat4 viewMatrix = camera.GetViewMatrix();
             glm::mat4 projectionMatrix = camera.GetProjectionMatrix();
@@ -236,15 +228,6 @@ int main(void)
                 glLineWidth(3.0f);
                 axis.Draw();
             }
-            {   //Draw the coordinate axis
-                shader.Bind();
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)); //create a model matrix
-                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
-                shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
-                shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
-                glLineWidth(3.0f);
-                axis.Draw();
-            }
             /*
             {
                 glm::mat4 model = glm::mat4(1.0f); //create a model matrix
@@ -252,7 +235,8 @@ int main(void)
                 shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
                 shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
                 sphere.Draw();
-            }*/
+            }
+            */
             {   //Draw object A
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA); //create a model matrix
                 glm::mat4 mvp = projectionMatrix * viewMatrix * model;
@@ -276,16 +260,43 @@ int main(void)
                 VertexBufferLayout layout;
                 layout.Push<float>(3);
                 va2.AddBuffer(vb2, layout);
-                shader2.Bind();
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); //create a model matrix
-				glm::mat4 mvp = projectionMatrix * viewMatrix * model;
-                shader2.SetUniform3f("u_LightPos", lightPos.x, lightPos.y, lightPos.z); //set the uniform
-                shader2.SetUniform3f("u_LightColor", lightColor.x, lightColor.y, lightColor.z); //set the uniform
-                shader2.SetUniform3f("u_ViewPos", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z); //set the uniform
-                shader2.SetUniform1f("u_Wavelength", waveLength); //set the uniform 
-				shader2.SetUniform1f("u_Time", time); //set the uniform
-				shader2.SetUniformMat4f("u_MVP", mvp); //set the uniform
-                renderer.Draw(va2, ib2, shader2);
+                if (blinn)
+                {
+                    shader2.Bind();
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); //create a model matrix
+                    glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                    shader2.SetUniform3f("u_LightPos", lightPos.x, lightPos.y, lightPos.z); //set the uniform
+                    shader2.SetUniform3f("u_LightColor", lightColor.x, lightColor.y, lightColor.z); //set the uniform
+                    shader2.SetUniform3f("u_ViewPos", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z); //set the uniform
+                    shader2.SetUniform1f("u_Wavelength", waveLength); //set the uniform 
+                    shader2.SetUniform1f("u_Time", time); //set the uniform
+                    shader2.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                    renderer.Draw(va2, ib2, shader2);
+                }
+                else
+                {
+                    // Calculate minZ and maxZ based on the actual z-coordinates of the vertices
+                    float minZ = 1e6; // Initialize to a large value
+                    float maxZ = -1e6; // Initialize to a small value
+                    // Loop through the vertices to find minZ and maxZ
+                    for (int i = 0; i < numRows; i++) {
+                        for (int j = 0; j < numCols; j++) {
+                            float z = vertices[(i * numCols + j) * 3 + 2];
+                            minZ = std::min(minZ, z);
+                            maxZ = std::max(maxZ, z);
+                        }
+                    }
+                    shader3.Bind();
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); //create a model matrix
+                    glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                    shader3.SetUniform1f("u_Wavelength", waveLength); //set the uniform 
+                    shader3.SetUniform1f("u_PhaseShift", phaseShift); //set the uniform 
+                    shader3.SetUniform1f("u_Amplitude", amplitude); //set the uniform 
+                    shader3.SetUniform1f("u_Time", time); //set the uniform
+                    shader3.SetUniform1f("u_Norm", norm); //set the uniform
+                    shader3.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                    renderer.Draw(va2, ib2, shader3);
+                }
             }
             {
                 ImGui::Begin("Application Controls");
@@ -296,14 +307,24 @@ int main(void)
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
 
-
+                ImGui::Begin("Object Controls");
+                ImGui::Checkbox("Blinn", &blinn);
                 ImGui::SliderFloat3("Translation A", &translationA.x, -960.f, 960.0f);
                 ImGui::SliderFloat3("Translation B", &translationB.x, -960.f, 960.0f);
-                ImGui::SliderFloat("Wave Length", &waveLength, 0.001f, 100.0f);
                 ImGui::SliderFloat("X Amplitude", &xamp, 0.0f, 100.0f);
                 ImGui::SliderFloat("Z Amplitude", &zamp, 0.0f, 100.0f);
-                ImGui::SliderFloat3("Light Position", &lightPos.x, -960.f, 960.0f);
-                ImGui::SliderFloat3("Light Color", &lightColor.x, 0.0f, 1.0f);
+                ImGui::SliderFloat("Wave Length", &waveLength, 0.001f, 50.0f);
+                if(blinn)
+                {
+                    ImGui::SliderFloat3("Light Position", &lightPos.x, -960.f, 960.0f);
+                    ImGui::SliderFloat3("Light Color", &lightColor.x, 0.0f, 1.0f);
+                }
+                else
+                {
+                    ImGui::SliderFloat("Phase Shift", &phaseShift, 0.001f, 50.0f);
+                    ImGui::SliderFloat("Amplitude", &amplitude, 0.001f, 5.0f);
+                    ImGui::SliderFloat("Norm", &norm, 0.001f, 5.0f);
+                }
             }
             camera.SetFOV(glm::radians(fov));
             camera.setSpeed(speed);

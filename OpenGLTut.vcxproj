@@ -167,6 +167,7 @@
     <None Include="dependencies\lib\glfw3.dll" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Sinusoid.shader" />
+    <None Include="res\shaders\Sinusoid_No_Blinn.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_common_simd.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />

@@ -482,6 +482,7 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\Sinusoid.shader" />
+    <None Include="res\shaders\Sinusoid_No_Blinn.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />

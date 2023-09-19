@@ -8,7 +8,7 @@ Sphere::Sphere(float radius)
 	GenerateSphereIndices();
 	m_IBO = IndexBuffer(&m_Indices[0], m_Indices.size());
 	m_VBO = VertexBuffer(&m_Vertices[0], m_Vertices.size() * sizeof(float));
-
+	
 	for (int i = 0; i < m_Vertices.size(); i+=3)
 	{
 		std::cout << m_Vertices[i] << ", " << m_Vertices[i + 1] << ", " << m_Vertices[i + 2] <<", " << std::endl;

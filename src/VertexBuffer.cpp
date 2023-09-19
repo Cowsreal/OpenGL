@@ -15,7 +15,6 @@ VertexBuffer::~VertexBuffer()
 
 void VertexBuffer::Bind() const
 {
-    std::cout << "HI" << std::endl;
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));  //GL_ARRAY_BUFFER is a type of buffer, bind the current buffer
 }
 void VertexBuffer::Unbind() const
