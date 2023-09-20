@@ -6,8 +6,6 @@
 //      Render the spheres
 //      Create a color mapper for regions of constant probability
 
-
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -56,8 +54,8 @@ int main(void)
     bool blinn = false;
     const int numRows = 100;
     const int numCols = 100;
-    const float planeSizeX = 100.0f;
-    const float planeSizeZ = 100.0f;
+    const float planeSizeX = 1000.0f;
+    const float planeSizeZ = 1000.0f;
     const float cellWidth = planeSizeX / (numCols - 1);
     const float cellDepth = planeSizeZ / (numRows - 1);
 
@@ -151,7 +149,8 @@ int main(void)
 
         Shader shader("res/shaders/Basic.shader"); //create a shader
         Shader shader2("res/shaders/Sinusoid.shader"); //create a shader
-        Shader shader3("res/shaders/Sinusoid_No_Blinn.shader"); //create a shader
+        Shader shader3("res/shaders/test.shader"); //create a shader
+        Shader shader4("res/shaders/test2.shader"); //create a shader
         
         
         //COORDINATE AXIS
@@ -164,7 +163,7 @@ int main(void)
         //Texture texture("res/textures/img.png"); //create a texture)
         //texture.Bind();
         //shader.SetUniform1i("u_Texture", 0); //set the uniform
-        //Sphere sphere = Sphere(100.0f);
+        Sphere sphere = Sphere(100.0f);
 
         std::cout << "Constructed sphere" << std::endl;
         va.Unbind();
@@ -228,15 +227,14 @@ int main(void)
                 glLineWidth(3.0f);
                 axis.Draw();
             }
-            /*
+            
             {
                 glm::mat4 model = glm::mat4(1.0f); //create a model matrix
                 glm::mat4 mvp = projectionMatrix * viewMatrix * model;
                 shader.SetUniformMat4f("u_MVP", mvp); //set the uniform
-                shader.SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f); //set the uniform
+                shader.SetUniform4f("u_Color", 0.0f, 1.0f, 1.0f, 1.0f); //set the uniform
                 sphere.Draw();
             }
-            */
             {   //Draw object A
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA); //create a model matrix
                 glm::mat4 mvp = projectionMatrix * viewMatrix * model;
@@ -286,8 +284,9 @@ int main(void)
                             maxZ = std::max(maxZ, z);
                         }
                     }
-                    shader3.Bind();
-                    glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); //create a model matrix
+                    
+                    shader3.Bind();//rotate along x axis
+                    glm::mat4 model = glm::rotate(glm::translate(glm::mat4(1.0f), translationB), glm::radians(-90.0f), glm::vec3(1, 0, 0)); //create a model matrix
                     glm::mat4 mvp = projectionMatrix * viewMatrix * model;
                     shader3.SetUniform1f("u_Wavelength", waveLength); //set the uniform 
                     shader3.SetUniform1f("u_PhaseShift", phaseShift); //set the uniform 
@@ -295,8 +294,31 @@ int main(void)
                     shader3.SetUniform1f("u_Time", time); //set the uniform
                     shader3.SetUniform1f("u_Norm", norm); //set the uniform
                     shader3.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                    shader3.SetUniform3f("iResolution", windowWidth, windowHeight, 1.0f);
+                    shader3.SetUniform1f("iTime", time);
                     renderer.Draw(va2, ib2, shader3);
+
+                    glm::mat4 model2 = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+                    mvp = projectionMatrix * viewMatrix * model2;
+                    shader4.Bind();
+                    shader4.SetUniformMat4f("u_MVP", mvp); //set the uniform
+					shader4.SetUniform3f("iResolution", windowWidth, windowHeight, 1.0f);
+                    shader4.SetUniform1f("iTime", time);
+                    renderer.Draw(va2, ib2, shader4);
+
+                    shader3.Bind();
+                    model = glm::translate(model, glm::vec3(0.0f, -1000.0f, 0.0f));
+                    mvp = projectionMatrix * viewMatrix * model;
+                    shader3.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                    renderer.Draw(va2, ib2, shader3);
+
+                    model2 = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
+                    mvp = projectionMatrix * viewMatrix * model2;
+                    shader4.Bind();
+                    shader4.SetUniformMat4f("u_MVP", mvp); //set the uniform
+                    renderer.Draw(va2, ib2, shader4);
                 }
+
             }
             {
                 ImGui::Begin("Application Controls");

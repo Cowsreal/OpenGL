@@ -3,12 +3,12 @@
 class VertexBuffer
 {
 public:
-	VertexBuffer() {}; //Default constructor
+	VertexBuffer() : m_RendererID(0) {}; //Default constructor
 	VertexBuffer(const void* data, unsigned int size); //constructor
-	~VertexBuffer(); //destructor
+
 	
 	void Bind() const;
 	void Unbind() const;
 private:
-	unsigned int m_RendererID;
+	unsigned int m_RendererID = 0;
 };

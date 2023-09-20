@@ -483,6 +483,8 @@
     </None>
     <None Include="res\shaders\Sinusoid.shader" />
     <None Include="res\shaders\Sinusoid_No_Blinn.shader" />
+    <None Include="res\shaders\test.shader" />
+    <None Include="res\shaders\test2.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
